@@ -1,2 +1,2 @@
 # codigos_e_arquivos
- pedaços do codigo e arquivos para o processamento de imagens do pnt
+Codigo para processamento das imagens e geração de resultados do MONTER-PNT
