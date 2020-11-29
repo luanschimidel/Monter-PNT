@@ -2,9 +2,7 @@
 import tarfile
 from shutil import copyfile
 def descompactar(file,out_path):
-    #if os.path.isdir(out_path):
-    #    pass
-    #else :
+
     x = tarfile.open(file)
     x.extractall(out_path)
     return None
@@ -48,10 +46,6 @@ def clipFile(raster,shapefile,output_clip):
         })
 
     return None
-
-
-
-
 
 #Funçãp usada para extrair dados usados na correção radiometrica    
 
@@ -260,16 +254,19 @@ def main():
     shapefile_parque =r'C:\Users\ximis\workspace\pnt\PNT_ZA_Limites_mask\pnt_za_limite.shp' 
     
     #Arquivos txt para função reclass
-    cloud_mask = r'C:\Users\ximis\workspace\pnt\imagens_landsat\clouds.txt'
-    shadow_mask = r'C:\Users\ximis\workspace\pnt\imagens_landsat\shadow_GRIR8BITS.txt'
-    
+    cloud_mask = r'C:\Users\ximis\workspace\pnt\imagens_landsat\landsat8\processamento_completo\clouds.txt'
+    shadow_mask = r'C:\Users\ximis\workspace\pnt\imagens_landsat\shadow_GRIR8BITS.txt'    
+    # Pasta para arquivos ndvi
     ndvi =r'C:\Users\ximis\workspace\pnt\imagens_landsat\landsat8\processamento_completo\ndvi'
+    
+    # descompactando o arquivo com as bandas
     for file in os.listdir(compactas):
         Tar_file = compactas+'/'+file
         outpath = descompactas+'/'+file[:-7]
         if not os.path.isdir(outpath):
             descompactar(Tar_file,outpath)
     
+    #cortando as imagens usando a mascara de limitação do Parque
     for file in os.listdir(descompactas):
         bandas = descompactas+'/'+file
         for banda in os.listdir(bandas):
@@ -289,8 +286,13 @@ def main():
         #Cria mascara de nuvem
         BQA = clip_dir+'/'+clip+'/'+clip+'_BQA.TIF'
         BQA_reclassificada = clip_dir+'/'+clip+'/'+'cloud_mask.TIF'
+      
+        
+        print('')
+        print('')
         if not os.path.isfile(BQA_reclassificada):
             reclassify(BQA,BQA_reclassificada,cloud_mask)
+            
             
         #aplica mascara de nuvem em todos os arquivos 
         for b in os.listdir(clip_dir+'/'+ clip):
@@ -328,7 +330,6 @@ def main():
     
     
     for file in os.listdir(TOA):
-
         
         pasta_sombras = arquivos_sombra+'/'+file 
         if not os.path.isdir(pasta_sombras):
@@ -352,12 +353,18 @@ def main():
         
         # GERA OS RASTERS DE COMPOSIÇÃO VERDE VEREMLHO E INFRAVERMELHO
         GRIR =  pasta_sombras+'/GRIR_band.TIF'
+        print(GRIR)
         if not os.path.isfile(GRIR):
             Raster_GRIR(output_band3,output_band4,output_band5,GRIR)
         
         # Passa  O FILTRO  DE SOMBRA        
         output_filter = pasta_sombras + '/filterGRIR.sdat'
+        print(output_filter)
+        print('')
+        print('')
+        
         if not os.path.isfile(output_filter):
+            
             filter(GRIR,output_filter)
         
         # GERA a MASCARA DE SOMBRA
@@ -372,8 +379,13 @@ def main():
         product_file(B4,shadow,Red_clean)
         product_file(B5,shadow,InfraRed_clean)
         
+        
+        
+        
         mtl = (os.path.join(TOA,file,file+'_MTL.txt'))
         mtl_destiny = os.path.join(ndvi,file,file+'_MTL.txt')
+        
+        
         #NDVI
         Ndvi = ndvi+'/{}/{}_ndvi.TIF'.format(file,file)
         if not os.path.isdir(ndvi+'/'+file):
